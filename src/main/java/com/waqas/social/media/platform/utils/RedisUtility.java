@@ -28,21 +28,6 @@ public class RedisUtility {
         this.userService = userService;
     }
 
-    public void setEndpointsByAccountTypeId(Long id, List<String> endpoints) {
-        String key = Constants.ACCOUNT_ID + id;
-        deleteEndpointByAccountTypeId(id);
-        redisEndpointsByAccountType.opsForValue().set(key, endpoints);
-    }
-
-    public List<String> getEndpointByAccountTypeId(Long id) {
-        return redisEndpointsByAccountType.opsForValue().get(Constants.ACCOUNT_ID + id);
-    }
-
-    public void deleteEndpointByAccountTypeId(Long id) {
-        String key = Constants.ACCOUNT_ID + id;
-        redisEndpointsByAccountType.delete(key);
-    }
-
     public void addJwtTokenToBlacklist(String jwtToken) {
         redisJwtBlacklistTemplate.opsForValue().set(JWT_BLACKLIST_KEY + ":" + jwtToken, jwtToken);
         long remainingTokenExpiryTimeInMillis = userService.getRemainingExpiryTimeFromToken(jwtToken);

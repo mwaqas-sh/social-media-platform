@@ -8,12 +8,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @Validated
@@ -77,6 +74,13 @@ public class UserController {
     public ResponseEntity<HttpRequestResult> getAllFollowingsById(@PathVariable Long id) {
         application.info("Get User's Following By Id {}", id);
         return userService.getAllFollowings(id);
+    }
+
+    @Operation(summary = "search post by keyword")
+    @PostMapping("/search")
+    public ResponseEntity<HttpRequestResult> searchPosts(@RequestParam String keyword, @RequestParam int pageNumber, @RequestParam int pageSize) {
+        application.info("calling /users/search");
+        return userService.searchPosts(keyword, pageNumber, pageSize);
     }
 
 }

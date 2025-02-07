@@ -1,6 +1,7 @@
 package com.waqas.social.media.platform.service;
 
 import com.waqas.social.media.platform.domain.Follow;
+import com.waqas.social.media.platform.domain.Post;
 import com.waqas.social.media.platform.domain.User;
 import com.waqas.social.media.platform.domain.UserToken;
 import com.waqas.social.media.platform.repository.FollowRepository;
@@ -19,6 +20,9 @@ import org.apache.tomcat.util.bcel.Const;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -237,6 +241,18 @@ public class UserService {
             return Utilities.sendHttpBadRequestResponse(Constants.NO_RECORD_FOUND, "No followed users found", "");
         }
         return Utilities.sendHttpSuccessResponse(SUCCESS, followedUsers, "");
+    }
+
+    public ResponseEntity<HttpRequestResult> searchPosts(String keyword, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<User> users = userRepository.findByUserNameContainsOrEmailContainsOrBioContains(keyword,keyword,keyword,pageable);
+        if(users.isEmpty()) {
+            application.info("No users found");
+            return Utilities.sendHttpSuccessResponse(Constants.NO_RECORD_FOUND, users, "");
+        } else {
+            application.info("All users fetched successfully");
+            return Utilities.sendHttpSuccessResponse(SUCCESS, users, "");
+        }
     }
 
 }

@@ -56,6 +56,7 @@ public class PostService {
         Post post = new Post();
         post.setCreatedDate(currentDate);
         post.setLastModifiedDate(currentDate);
+        post.setTitle(postRequest.getTitle());
         post.setContent(postRequest.getContent());
         User user = userRepository.findByUserId(userIdFromToken);
         if (user == null) {
@@ -100,6 +101,7 @@ public class PostService {
         }
 
         post.setLastModifiedDate(currentDate);
+        post.setTitle(postRequest.getTitle());
         post.setContent(postRequest.getContent());
         postRepository.save(post);
         return Utilities.sendHttpSuccessResponse(Constants.SUCCESS, post, "");
@@ -143,14 +145,8 @@ public class PostService {
     public ResponseEntity<HttpRequestResult> likePost(Long id) {
         final long currentDate = Instant.now().toEpochMilli();
         Post post = postRepository.getById(id);
-        if(post == null) {
-            return Utilities.sendHttpBadRequestResponse(Constants.NO_RECORD_FOUND, null, "");
-        }
         long userIdFromToken = JwtHelper.getUserIdByToken(jwtSecret);
         User user = userRepository.findById(userIdFromToken).get();
-        if(user == null) {
-            return Utilities.sendHttpBadRequestResponse(Constants.USER_NOT_FOUND, null, "");
-        }
         PostLike postLike = new PostLike();
         postLike.setPost(post);
         postLike.setUser(user);
@@ -159,4 +155,18 @@ public class PostService {
         postLikeRepository.save(postLike);
         return Utilities.sendHttpSuccessResponse(Constants.SUCCESS, postLike, "");
     }
+
+    public ResponseEntity<HttpRequestResult> searchPosts(String keyword, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Post> posts = postRepository.findByTitleContainsOrContentContains(keyword, keyword,  pageable);
+        if(posts.isEmpty()) {
+            application.info("No posts found");
+            return Utilities.sendHttpSuccessResponse(Constants.NO_RECORD_FOUND, posts, "");
+        } else {
+            application.info("All users fetched successfully");
+            return Utilities.sendHttpSuccessResponse(SUCCESS, posts, "");
+        }
+    }
+
+
 }

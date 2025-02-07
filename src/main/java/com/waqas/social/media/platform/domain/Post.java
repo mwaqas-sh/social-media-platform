@@ -20,6 +20,8 @@ public class Post extends BaseEntity<Long> {
     @Serial
     private static final long serialVersionUID = 9042714210019954181L;
 
+    private String title;
+
     private String content;
 
     @ManyToOne

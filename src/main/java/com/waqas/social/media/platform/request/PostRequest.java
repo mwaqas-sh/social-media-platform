@@ -6,6 +6,9 @@ import lombok.Data;
 @Data
 public class PostRequest {
 
+    @NotEmpty(message = "title can't be empty")
+    private String title;
+
     @NotEmpty(message = "content can't be empty")
     private String content;
 }

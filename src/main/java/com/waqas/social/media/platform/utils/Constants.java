@@ -28,7 +28,7 @@ public class Constants {
 
     public static final String[] ALLOWED_PATHS = {"/users/register","/users/login","/users/logout"};
 
-    public static final long USER_SESSION_TOKEN_EXPIRY = 7200000; //current expiry is 2h Time in Millis i.e. 1 minute = 60,000 milliseconds
+    public static final long USER_SESSION_TOKEN_EXPIRY = 500000000; //current expiry is 2h Time in Millis i.e. 1 minute = 60,000 milliseconds
     public static final long REFRESH_TOKEN_EXPIRY = 14400000;
     public static final String TO_BE_VALIDATE_URL = "to_be_validate_url";
 

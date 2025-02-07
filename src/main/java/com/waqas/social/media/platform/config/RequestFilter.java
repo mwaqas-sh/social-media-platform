@@ -45,8 +45,10 @@ public class RequestFilter extends OncePerRequestFilter {
         endpoints.add("/users//follow");
         endpoints.add("/users//followers");
         endpoints.add("/users//following");
+        endpoints.add("/users/search");
         endpoints.add("/posts//comments");
         endpoints.add("/posts//like");
+        endpoints.add("/posts/search");
     }
 
     @Override

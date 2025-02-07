@@ -75,10 +75,10 @@ public class PostController {
         return postService.likePost(id);
     }
 
-    @Operation(summary = "search a post by keyword")
+    @Operation(summary = "search post by keyword")
     @PostMapping("/search")
-    public List<Post> searchPosts(@RequestParam String keyword) {
+    public ResponseEntity<HttpRequestResult> searchPosts(@RequestParam String keyword, @RequestParam int pageNumber, @RequestParam int pageSize) {
         application.info("calling /posts/search");
-        return null;
+        return postService.searchPosts(keyword, pageNumber, pageSize);
     }
 }
