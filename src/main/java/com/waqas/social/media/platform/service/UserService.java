@@ -1,7 +1,9 @@
 package com.waqas.social.media.platform.service;
 
+import com.waqas.social.media.platform.domain.Follow;
 import com.waqas.social.media.platform.domain.User;
 import com.waqas.social.media.platform.domain.UserToken;
+import com.waqas.social.media.platform.repository.FollowRepository;
 import com.waqas.social.media.platform.repository.UserRepository;
 import com.waqas.social.media.platform.repository.UserTokenRepository;
 import com.waqas.social.media.platform.request.UserLoginRequest;
@@ -13,6 +15,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.apache.tomcat.util.bcel.Const;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,15 +47,17 @@ public class UserService {
     private final RedisUtility redisUtility;
 
     private final PasswordEncoder passwordEncoder;
+    private final FollowRepository followRepository;
     @Value(value = "${jwt.secret}")
     String jwtSecret;
 
-    public UserService(UserRepository userRepository, UserTokenRepository userTokenRepository, RedisUtility redisUtility, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, UserTokenRepository userTokenRepository, RedisUtility redisUtility, PasswordEncoder passwordEncoder, FollowRepository followRepository) {
 
         this.userRepository = userRepository;
         this.userTokenRepository = userTokenRepository;
         this.redisUtility = redisUtility;
         this.passwordEncoder = passwordEncoder;
+        this.followRepository = followRepository;
     }
 
     public ResponseEntity<HttpRequestResult> registerUser(UserRequest userRequest) {
@@ -187,5 +192,51 @@ public class UserService {
         }
     }
 
+    public ResponseEntity<HttpRequestResult> followUser(Long userId) {
+        final long currentDate = Instant.now().toEpochMilli();
+        User followedUser = userRepository.findByUserId(userId);
+        if (followedUser == null) {
+            return Utilities.sendHttpBadRequestResponse(USER_NOT_FOUND, "Followed user not found", "");
+        }
+        long userIdFromToken = JwtHelper.getUserIdByToken(jwtSecret);
+        User followerUser = userRepository.findByUserId(userIdFromToken);
+        if (followerUser == null) {
+            return Utilities.sendHttpBadRequestResponse(Constants.NO_RECORD_FOUND, "Follower user not found", "");
+        }
+        if(followedUser == followerUser) {
+            return Utilities.sendHttpBadRequestResponse(FAILURE, "A user cannot follow himself", "");
+        }
+        Follow follow = new Follow();
+        follow.setCreatedDate(currentDate);
+        follow.setLastModifiedDate(currentDate);
+        follow.setFollowed(followedUser);
+        follow.setFollower(followerUser);
+        followRepository.save(follow);
+        return Utilities.sendHttpSuccessResponse(SUCCESS, follow, "");
+    }
+
+    public ResponseEntity<HttpRequestResult> getAllFollowersUsers(Long userId) {
+        User followedUser = userRepository.findByUserId(userId);
+        if (followedUser == null) {
+            return Utilities.sendHttpBadRequestResponse(USER_NOT_FOUND, "Followed user not found", "");
+        }
+        List<User> followingUsers = followRepository.findFollowersByFollowedId(userId);
+        if (followingUsers.isEmpty()) {
+            return Utilities.sendHttpBadRequestResponse(Constants.NO_RECORD_FOUND, "No following users found", "");
+        }
+        return Utilities.sendHttpSuccessResponse(SUCCESS, followingUsers, "");
+    }
+
+    public ResponseEntity<HttpRequestResult> getAllFollowings(Long userId) {
+        User followingUser = userRepository.findByUserId(userId);
+        if (followingUser == null) {
+            return Utilities.sendHttpBadRequestResponse(Constants.NO_RECORD_FOUND, "Following user not found", "");
+        }
+        List<User> followedUsers = followRepository.findFollowedByFollowerId(userId);
+        if (followedUsers.isEmpty()) {
+            return Utilities.sendHttpBadRequestResponse(Constants.NO_RECORD_FOUND, "No followed users found", "");
+        }
+        return Utilities.sendHttpSuccessResponse(SUCCESS, followedUsers, "");
+    }
 
 }

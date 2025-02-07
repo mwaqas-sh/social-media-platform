@@ -1,11 +1,14 @@
 package com.waqas.social.media.platform.service;
 
+import com.waqas.social.media.platform.domain.Comment;
 import com.waqas.social.media.platform.domain.Post;
+import com.waqas.social.media.platform.domain.PostLike;
 import com.waqas.social.media.platform.domain.User;
 import com.waqas.social.media.platform.repository.CommentRepository;
 import com.waqas.social.media.platform.repository.PostLikeRepository;
 import com.waqas.social.media.platform.repository.PostRepository;
 import com.waqas.social.media.platform.repository.UserRepository;
+import com.waqas.social.media.platform.request.CommentRequest;
 import com.waqas.social.media.platform.request.PostRequest;
 import com.waqas.social.media.platform.utils.*;
 import org.slf4j.Logger;
@@ -63,9 +66,9 @@ public class PostService {
         return Utilities.sendHttpSuccessResponse(SUCCESS, post, "");
     }
 
-    public ResponseEntity<HttpRequestResult> getAllPosts(int page, int size, SortType sortOrder) {
+    public ResponseEntity<HttpRequestResult> getAllPosts(int pageNumber, int pageSize, SortType sortOrder) {
         Sort sort = sortOrder == SortType.DESC ? Sort.by("createdDate").descending() : Sort.by("createdDate").ascending();
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
         Page<Post> posts = postRepository.findAll(pageable);
         if(posts.isEmpty()) {
             application.info("No posts found");
@@ -114,5 +117,46 @@ public class PostService {
 
         postRepository.delete(post);
         return Utilities.sendHttpSuccessResponse(Constants.SUCCESS, "Deleted Successfully", "");
+    }
+
+    public ResponseEntity<HttpRequestResult> commentPost(Long id, CommentRequest commentRequest) {
+        final long currentDate = Instant.now().toEpochMilli();
+        Post post = postRepository.getById(id);
+        if(post == null) {
+            return Utilities.sendHttpBadRequestResponse(Constants.NO_RECORD_FOUND, null, "");
+        }
+        long userIdFromToken = JwtHelper.getUserIdByToken(jwtSecret);
+        User user = userRepository.findById(userIdFromToken).get();
+        if(user == null) {
+            return Utilities.sendHttpBadRequestResponse(Constants.USER_NOT_FOUND, null, "");
+        }
+        Comment comment = new Comment();
+        comment.setCreatedDate(currentDate);
+        comment.setLastModifiedDate(currentDate);
+        comment.setContent(commentRequest.getContent());
+        comment.setUser(userRepository.findById(userIdFromToken).get());
+        comment.setPost(post);
+        commentRepository.save(comment);
+        return Utilities.sendHttpSuccessResponse(Constants.SUCCESS, comment, "");
+    }
+
+    public ResponseEntity<HttpRequestResult> likePost(Long id) {
+        final long currentDate = Instant.now().toEpochMilli();
+        Post post = postRepository.getById(id);
+        if(post == null) {
+            return Utilities.sendHttpBadRequestResponse(Constants.NO_RECORD_FOUND, null, "");
+        }
+        long userIdFromToken = JwtHelper.getUserIdByToken(jwtSecret);
+        User user = userRepository.findById(userIdFromToken).get();
+        if(user == null) {
+            return Utilities.sendHttpBadRequestResponse(Constants.USER_NOT_FOUND, null, "");
+        }
+        PostLike postLike = new PostLike();
+        postLike.setPost(post);
+        postLike.setUser(user);
+        postLike.setCreatedDate(currentDate);
+        postLike.setLastModifiedDate(currentDate);
+        postLikeRepository.save(postLike);
+        return Utilities.sendHttpSuccessResponse(Constants.SUCCESS, postLike, "");
     }
 }

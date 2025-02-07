@@ -58,4 +58,25 @@ public class UserController {
         return userService.getUserById(id);
     }
 
+    @Operation(summary = "follow a user by id")
+    @PostMapping("/{id}/follow")
+    public ResponseEntity<HttpRequestResult> followUser(@PathVariable Long id) {
+        application.info("calling /users/{id}/follow");
+        return userService.followUser(id);
+    }
+
+    @Operation(summary = "Get user's followers")
+    @GetMapping("/{id}/followers")
+    public ResponseEntity<HttpRequestResult> getAllFollowersById(@PathVariable Long id) {
+        application.info("Get User's Followers By Id {}", id);
+        return userService.getAllFollowersUsers(id);
+    }
+
+    @Operation(summary = "Get user's followings")
+    @GetMapping("/{id}/following")
+    public ResponseEntity<HttpRequestResult> getAllFollowingsById(@PathVariable Long id) {
+        application.info("Get User's Following By Id {}", id);
+        return userService.getAllFollowings(id);
+    }
+
 }

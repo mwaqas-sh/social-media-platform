@@ -42,7 +42,11 @@ public class RequestFilter extends OncePerRequestFilter {
         this.redisUtility = redisUtility;
         endpoints.add("/users/register");
         endpoints.add("/users/login");
-        endpoints.add("/posts/test");
+        endpoints.add("/users//follow");
+        endpoints.add("/users//followers");
+        endpoints.add("/users//following");
+        endpoints.add("/posts//comments");
+        endpoints.add("/posts//like");
     }
 
     @Override
